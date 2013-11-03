@@ -7,7 +7,7 @@ setup(
     description='Library for manipulating (e)wkb headers',
     author='Asmund Tokheim',
     author_email='asmundto@gmail.com',
-    url='tba',
+    url='https://github.com/tokheim/wkbheader',
     py_modules=['wkbheader']
 )
 
