@@ -38,6 +38,14 @@ class WKBHeaderTest(unittest.TestCase):
     def test_endian_types(self):
         assert wkbheader.get_type_int(self.point_nosrid) == wkbheader.get_type_int(self.point_nosrid_bigendian)
 
+    def test_malformed_wkb(self):
+        with self.assertRaises(TypeError) as hexerr:
+            wkbheader.has_little_endian(self.point_nosrid.encode('hex'))
+        assert 'hex' in hexerr.exception.message
+        with self.assertRaises(TypeError) as nohexerr:
+            wkbheader.has_little_endian('foobar')
+        assert 'hex' not in nohexerr.exception.message
+
     def test_drop_srid_from_type(self):
         point_with_srid_type = 536870913
         point_without_srid = 1

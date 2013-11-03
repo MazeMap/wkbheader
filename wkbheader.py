@@ -24,7 +24,7 @@ _LITTLE_ENDIAN = '<'
 _BIG_ENDIAN = '>'
 
 def has_little_endian(wkb):
-    return struct.unpack_from('B', wkb, _ENDIAN_OFFSET)[0] != 0
+    return _endian_symbol(wkb) == _LITTLE_ENDIAN
 
 def drop_srid(ewkb):
     '''
@@ -64,9 +64,18 @@ def get_type_int(wkb):
     return wkbtype
 
 def _endian_symbol(wkb):
-    if has_little_endian(wkb):
+    endian_byte =  struct.unpack_from('<B', wkb, _ENDIAN_OFFSET)[0]
+    if endian_byte == 1:
         return _LITTLE_ENDIAN
-    return _BIG_ENDIAN
+    elif endian_byte == 0:
+        return _BIG_ENDIAN
+    else:
+        try:
+            wkb.decode('hex')
+        except TypeError:
+            raise TypeError('Input bytestream does not seem to be a wkb')
+        else:
+            raise TypeError('Input seems to be hex-encoded')
 
 def _srid(wkb, es):
     return struct.unpack_from(es+'I', wkb, _SRID_OFFSET)[0]
