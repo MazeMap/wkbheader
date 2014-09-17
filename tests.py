@@ -1,5 +1,6 @@
 import unittest
 import wkbheader
+import codecs
 
 '''
 Testwkbs extracted from Postgis 2.0.3
@@ -7,16 +8,40 @@ Testwkbs extracted from Postgis 2.0.3
 
 class WKBHeaderTest(unittest.TestCase):
     def setUp(self):
-        self.point_wgs84 = "0101000020E610000000000000000008400000000000001040".decode('hex')#point(3, 4), 4326 Little endian
-        self.point_google = "010100002031BF0D0000000000000008400000000000001040".decode('hex')#point(3, 4), 900913 Little endian
-        self.point_nosrid = "010100000000000000000008400000000000001040".decode('hex')#point(3, 4), Little endian no srid
+        self.point_wgs84 = codecs.decode(
+                "0101000020E610000000000000000008400000000000001040",
+                'hex_codec'
+        )#point(3, 4), 4326 Little endian
+        self.point_google = codecs.decode(
+                "010100002031BF0D0000000000000008400000000000001040",
+                'hex_codec'
+        )#point(3, 4), 900913 Little endian
+        self.point_nosrid = codecs.decode(
+                "010100000000000000000008400000000000001040",
+                'hex_codec'
+        )#point(3, 4), Little endian no srid
 
-        self.geocol_line_poly_wgs84 = \
-            "01030000A0E6100000010000000400000000000000000024400000000000000840000000000000004000000000000010400000000000001C400000000000002040000000000000084000000000000022400000000000002840000000000000244000000000000008400000000000000040".decode('hex')
-        self.geocol_line_poly_nosrid = \
-            "0103000080010000000400000000000000000024400000000000000840000000000000004000000000000010400000000000001C400000000000002040000000000000084000000000000022400000000000002840000000000000244000000000000008400000000000000040".decode('hex')
+        self.geocol_line_poly_wgs84 = codecs.decode(
+                "01030000A0E61000000100000004000000000000000000"+
+                "2440000000000000084000000000000000400000000000"+
+                "0010400000000000001C40000000000000204000000000"+
+                "0000084000000000000022400000000000002840000000"+
+                "000000244000000000000008400000000000000040",
+                'hex_codec'
+        )
+        self.geocol_line_poly_nosrid = codecs.decode(
+                "0103000080010000000400000000000000000024400000"+
+                "0000000008400000000000000040000000000000104000"+
+                "00000000001C4000000000000020400000000000000840"+
+                "0000000000002240000000000000284000000000000024"+
+                "4000000000000008400000000000000040",
+                'hex_codec'
+        )
 
-        self.point_nosrid_bigendian = "000000000140000000000000004010000000000000".decode('hex')
+        self.point_nosrid_bigendian = codecs.decode(
+                "000000000140000000000000004010000000000000",
+                'hex_codec'
+        )
 
     def tearDown(self):
         pass
@@ -39,12 +64,13 @@ class WKBHeaderTest(unittest.TestCase):
         assert wkbheader.get_type_int(self.point_nosrid) == wkbheader.get_type_int(self.point_nosrid_bigendian)
 
     def test_malformed_wkb(self):
+        malformed = codecs.encode(self.point_nosrid, 'hex_codec')
         with self.assertRaises(TypeError) as hexerr:
-            wkbheader.has_little_endian(self.point_nosrid.encode('hex'))
-        assert 'hex' in hexerr.exception.message
+            wkbheader.has_little_endian(malformed)
+            assert 'hex' in hexerr.exception.message
         with self.assertRaises(TypeError) as nohexerr:
             wkbheader.has_little_endian('foobar')
-        assert 'hex' not in nohexerr.exception.message
+            assert 'hex' not in nohexerr.exception.message
 
     def test_drop_srid_from_type(self):
         point_with_srid_type = 536870913

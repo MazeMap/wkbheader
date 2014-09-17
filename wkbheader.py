@@ -6,6 +6,7 @@ BYTES   TYPE      value
 5-9     u_int_32  srid (or start of body if no srid is set)
 '''
 import struct
+import codecs
 
 #Flags in wkb type
 _ZDIM_FLAG = 0x80000000
@@ -64,18 +65,25 @@ def get_type_int(wkb):
     return wkbtype
 
 def _endian_symbol(wkb):
-    endian_byte =  struct.unpack_from('<B', wkb, _ENDIAN_OFFSET)[0]
-    if endian_byte == 1:
-        return _LITTLE_ENDIAN
-    elif endian_byte == 0:
-        return _BIG_ENDIAN
+    try:
+        endian_byte =  struct.unpack_from('<B', wkb, _ENDIAN_OFFSET)[0]
+    except TypeError:
+        pass
     else:
-        try:
-            wkb.decode('hex')
-        except TypeError:
-            raise TypeError('Input bytestream does not seem to be a wkb')
-        else:
-            raise TypeError('Input seems to be hex-encoded')
+        if endian_byte == 1:
+            return _LITTLE_ENDIAN
+        elif endian_byte == 0:
+            return _BIG_ENDIAN
+    _raise_typeerror(wkb)
+
+def _raise_typeerror(wkb):
+    #Postgis likes to use hex-encoded wkbs, so this method provides useful error message
+    try:
+        codecs.decode(wkb, 'hex_codec')
+    except:
+        raise TypeError('Input %s does not seem to be a wkb' % (type(wkb), ))
+    else:
+        raise TypeError('Error parsing wkb, is it hex-encoded?')
 
 def _srid(wkb, es):
     return struct.unpack_from(es+'I', wkb, _SRID_OFFSET)[0]
