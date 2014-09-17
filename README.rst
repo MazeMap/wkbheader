@@ -8,18 +8,22 @@ Specifically it can add and reomve srid values from the wkb header.
 Installation
 ============
 
-Download source and run 
-```bash
+Install via pip ::
+
+  $ pip install wkbheader
+
+or download source and run ::
+
   $ python setup.py install
-```
+
 
 Usage
 =====
-Example usage with shapely
-```python
+Example usage with shapely ::
+
   >>> import wkbheader
   >>> import psycopg2
-  >>> import shapely.wkb
+  >>> import codecs
   >>> from shapely.geometry import Point
   >>> #Connect to some database and create a geometry table 
   >>> conn = psycopg2.connect('...')
@@ -30,5 +34,5 @@ Example usage with shapely
   >>> ewkb = wkbheader.set_srid(p.wkb, 4326)
   >>> wkbheader.get_srid(ewkb)
   4326
-  >>> cursor.execute("INSERT INTO points (point_geom) values (%s)", (ewkb.encode('hex'), ))
-```
+  >>> hexewkb = codecs.encode(ewkb, 'hex_codec')
+  >>> cursor.execute("INSERT INTO points (point_geom) values (%s)", (hexewkb, ))
